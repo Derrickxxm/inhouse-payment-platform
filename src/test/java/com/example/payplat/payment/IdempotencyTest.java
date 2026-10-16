@@ -37,7 +37,7 @@ class IdempotencyTest extends PaymentTestBase {
     @Test
     void repeatedSubmitReflectsCurrentTaskStatus() {
         TaskView v = payments.submit(req("dup-3", 100, Tier.CHEAPEST, 1));
-        orderStates.apply(v.orders().get(0).orderId(), OrderStatus.SUCCESS);
+        drive(v.orders().get(0).orderId(), OrderStatus.SUCCESS);
         tasks.refresh(v.taskId());
         assertThat(payments.submit(req("dup-3", 100, Tier.CHEAPEST, 1)).status()).isEqualTo(TaskStatus.SUCCEEDED);
     }

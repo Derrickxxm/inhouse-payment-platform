@@ -10,7 +10,7 @@ class TaskRefreshTest extends PaymentTestBase {
 
     private TaskView taskWith(String id, int n, OrderStatus... statuses) {
         TaskView v = payments.submit(req(id, 1000, Tier.BALANCED, n));
-        for (int i = 0; i < statuses.length; i++) orderStates.apply(v.orders().get(i).orderId(), statuses[i]);
+        for (int i = 0; i < statuses.length; i++) drive(v.orders().get(i).orderId(), statuses[i]);
         return v;
     }
 
@@ -58,7 +58,7 @@ class TaskRefreshTest extends PaymentTestBase {
         List<OrderView> orders = v.orders();
         for (OrderStatus a : all) for (OrderStatus b : all) for (OrderStatus c : all) {
             OrderStatus[] s = {a, b, c};
-            for (int i = 0; i < 3; i++) orderStates.apply(orders.get(i).orderId(), s[i]);
+            for (int i = 0; i < 3; i++) force(orders.get(i).orderId(), s[i]);
             TaskView r = tasks.refresh(v.taskId());
             long ok = java.util.Arrays.stream(s).filter(x -> x == OrderStatus.SUCCESS).count();
             long bad = java.util.Arrays.stream(s).filter(x -> x == OrderStatus.FAILED).count();
@@ -78,9 +78,9 @@ class TaskRefreshTest extends PaymentTestBase {
         TaskView v = payments.submit(req("r-7", 900, Tier.CHEAPEST, 3));
         worker.runOnce();
         List<OrderView> o = payments.get(v.taskId()).orders();
-        orderStates.apply(o.get(0).orderId(), OrderStatus.SUCCESS);
-        orderStates.apply(o.get(1).orderId(), OrderStatus.SUCCESS);
-        orderStates.apply(o.get(2).orderId(), OrderStatus.FAILED);
+        drive(o.get(0).orderId(), OrderStatus.SUCCESS);
+        drive(o.get(1).orderId(), OrderStatus.SUCCESS);
+        drive(o.get(2).orderId(), OrderStatus.FAILED);
         TaskView r = tasks.refresh(v.taskId());
         assertThat(r.status()).isNotEqualTo(TaskStatus.SUCCEEDED).isEqualTo(TaskStatus.NOT_FINALIZED);
     }

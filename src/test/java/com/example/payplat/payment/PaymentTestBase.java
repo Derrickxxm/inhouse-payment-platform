@@ -43,4 +43,17 @@ abstract class PaymentTestBase {
     String orderStatus(long orderId) {
         return jdbc.queryForObject("select status from payment_order where id = ?", String.class, orderId);
     }
+
+    /** Moves an order to {@code target} through legal transitions only (CREATED goes via SUBMITTED). */
+    void drive(long orderId, OrderStatus target) {
+        OrderStatus cur = OrderStatus.valueOf(orderStatus(orderId));
+        if (cur == target) return;
+        if (cur == OrderStatus.CREATED && target != OrderStatus.SUBMITTED) orderStates.apply(orderId, OrderStatus.SUBMITTED);
+        orderStates.apply(orderId, target);
+    }
+
+    /** Writes a status directly with SQL, bypassing the state machine (exhaustive/illegal-state set-up only). */
+    void force(long orderId, OrderStatus status) {
+        jdbc.update("update payment_order set status = ? where id = ?", status.name(), orderId);
+    }
 }
