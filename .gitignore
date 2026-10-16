@@ -1,0 +1,12 @@
+target/
+data/
+.idea/
+*.iml
+.classpath
+.project
+.settings/
+.vscode/
+__pycache__/
+.mvn/wrapper/maven-wrapper.jar
+codex.log
+codex.pid
