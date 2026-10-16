@@ -172,7 +172,7 @@ class DemoRunnerTest {
             .containsEntry("balancedAfterRestore", true);
         assertThat(strings(7, "diffTypes")).isEqualTo(Set.of("LONG", "SHORT", "AMOUNT_MISMATCH", "STATUS_MISMATCH"));
         Map<?, ?> byType = (Map<?, ?>) facts(7).get("diffCountByType");
-        assertThat(byType.keySet()).containsExactlyInAnyOrder("LONG", "SHORT", "AMOUNT_MISMATCH", "STATUS_MISMATCH");
+        assertThat(byType.keySet().stream().map(String::valueOf).toList()).containsExactlyInAnyOrder("LONG", "SHORT", "AMOUNT_MISMATCH", "STATUS_MISMATCH");
         assertThat(byType.values().stream().map(v -> ((Number) v).longValue())).containsOnly(1L);
         assertThat(num(7, "persistedDiffRows")).isEqualTo(4);
     }
