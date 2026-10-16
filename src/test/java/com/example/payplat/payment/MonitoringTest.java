@@ -72,7 +72,7 @@ class MonitoringTest extends Pp5TestBase {
     @Test
     void p50AndP95UseNearestRankOverTenSamples() {
         durations(10, 20, 30, 40, 50, 60, 70, 80, 90, 100);
-        payments.submit(req("mon-4", 1000, Tier.CHEAPEST, 10));
+        for (int i = 0; i < 2; i++) payments.submit(req("mon-4-" + i, 500, Tier.CHEAPEST, 5)); // splitInto max is 5 (PP-2)
         worker.runOnce();
         ChannelStats b = monitoring.snapshot().get(B);
         assertThat(b.attempts()).isEqualTo(10);
@@ -83,7 +83,7 @@ class MonitoringTest extends Pp5TestBase {
     @Test
     void p50AndP95UseNearestRankOverTwentySamplesRegardlessOfCallOrder() {
         durations(20, 1, 19, 2, 18, 3, 17, 4, 16, 5, 15, 6, 14, 7, 13, 8, 12, 9, 11, 10);
-        payments.submit(req("mon-5", 2000, Tier.CHEAPEST, 20));
+        for (int i = 0; i < 4; i++) payments.submit(req("mon-5-" + i, 500, Tier.CHEAPEST, 5)); // splitInto max is 5 (PP-2)
         worker.runOnce();
         ChannelStats b = monitoring.snapshot().get(B);
         assertThat(b.p50Ms()).isEqualTo(10);

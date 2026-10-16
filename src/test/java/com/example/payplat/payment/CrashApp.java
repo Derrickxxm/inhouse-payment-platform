@@ -21,7 +21,7 @@ final class CrashApp {
     private CrashApp() {}
 
     /** Test-owned beans, passed explicitly because scanning of other test configurations is switched off. */
-    @org.springframework.context.annotation.Configuration
+    @TestConfiguration // not picked up by component scan in other @SpringBootTest contexts
     static class CrashConfig {
         @Bean
         @Primary
