@@ -5,6 +5,8 @@ import com.example.payplat.routing.NoEligibleChannelException;
 import com.example.payplat.routing.Tier;
 import java.sql.Timestamp;
 import java.time.Clock;
+import java.time.Duration;
+import java.time.Instant;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.PlatformTransactionManager;
@@ -33,7 +35,8 @@ public class JobWorker {
     public int runOnce() {
         int claimed = 0;
         for (long jobId : jdbc.queryForList("SELECT id FROM job WHERE status = 'PENDING' ORDER BY id", Long.class)) {
-            if (jdbc.update("UPDATE job SET status = 'RUNNING' WHERE id = ? AND status = 'PENDING'", jobId) != 1) continue;
+            if (jdbc.update("UPDATE job SET status = 'RUNNING', started_at = ? WHERE id = ? AND status = 'PENDING'",
+                Timestamp.from(clock.instant()), jobId) != 1) continue;
             claimed++;
             process(jobId);
         }
@@ -54,9 +57,19 @@ public class JobWorker {
         String reason = null;
         try {
             channel = switches.pickWithFailover(order.tier(), order.taskId(), order.id(), id -> {
-                jdbc.update("UPDATE payment_order SET attempts = attempts + 1, updated_at = ? WHERE id = ?",
-                    Timestamp.from(clock.instant()), order.id());
-                return gateway.submit(id, order.id(), order.amount()).isAccepted();
+                Timestamp now = Timestamp.from(clock.instant());
+                jdbc.update("UPDATE payment_order SET channel_id = ?, submitting_at = ?, "
+                    + "attempts = attempts + 1, updated_at = ? WHERE id = ?", id, now, now, order.id());
+                Instant start = clock.instant();
+                SubmitResult result;
+                try {
+                    result = gateway.submit(id, order.id(), order.amount());
+                } catch (RuntimeException e) {
+                    logCall(id, order.id(), false, "EXCEPTION:" + e.getClass().getSimpleName(), start);
+                    throw e;
+                }
+                logCall(id, order.id(), result.isAccepted(), result.isAccepted() ? null : result.reason(), start);
+                return result.isAccepted();
             });
             status = OrderStatus.SUBMITTED;
         } catch (NoEligibleChannelException e) {
@@ -71,6 +84,13 @@ public class JobWorker {
                 result.name(), selected, failure, Timestamp.from(clock.instant()), order.id());
             jdbc.update("UPDATE job SET status = 'DONE' WHERE id = ?", jobId);
         });
+    }
+
+    private void logCall(String channel, long orderId, boolean accepted, String reason, Instant start) {
+        Instant end = clock.instant();
+        jdbc.update("INSERT INTO gateway_call_log (channel_id, order_id, accepted, reason, duration_ms, at) "
+            + "VALUES (?, ?, ?, ?, ?, ?)", channel, orderId, accepted, reason,
+            Duration.between(start, end).toMillis(), Timestamp.from(end));
     }
 
     private record Work(long id, long taskId, long amount, OrderStatus status, Tier tier) {}

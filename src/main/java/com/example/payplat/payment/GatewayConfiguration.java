@@ -9,6 +9,11 @@ public class GatewayConfiguration {
     ChannelGateway channelGateway() {
         return new ChannelGateway() {
             @Override
+            public java.util.List<StatementLine> statement(String channelId, java.time.LocalDate date) {
+                throw new UnsupportedOperationException("no channel gateway configured");
+            }
+
+            @Override
             public SubmitResult submit(String channelId, long orderId, long amountCents) {
                 throw new UnsupportedOperationException("no channel gateway configured");
             }

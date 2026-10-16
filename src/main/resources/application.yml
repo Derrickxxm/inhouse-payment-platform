@@ -7,5 +7,7 @@ spring:
   config:
     import: classpath:channels.yml
 payplat:
+  recovery:
+    window-seconds: 120
   corrector:
     window-seconds: 60
