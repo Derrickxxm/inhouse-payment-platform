@@ -3,6 +3,7 @@ package com.example.payplat.routing;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.Test;
@@ -40,9 +41,11 @@ class ChannelSwitchServiceTest extends RoutingTestBase {
     @Test
     void failuresAreRecordedAndEventuallyOpenTheCircuit() {
         for (int i = 0; i < 3; i++) {
+            clock.advance(Duration.ofSeconds(1)); // stay within FakeBankA's 2/s rate limit
             switchService.pickWithFailover(Tier.FASTEST, id -> !id.equals(C));
         }
         assertThat(circuits.isOpen(C)).isTrue();
+        clock.advance(Duration.ofSeconds(1));
         List<String> tried = new ArrayList<>();
         switchService.pickWithFailover(Tier.FASTEST, id -> { tried.add(id); return true; });
         assertThat(tried).containsExactly(A);
