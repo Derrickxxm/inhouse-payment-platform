@@ -1,3 +1,8 @@
 spring:
+  datasource:
+    url: jdbc:h2:mem:payplat-${random.uuid};DB_CLOSE_DELAY=-1
+  sql:
+    init:
+      mode: always
   config:
     import: classpath:channels.yml

@@ -19,10 +19,14 @@ public class ChannelSwitchService {
     }
 
     public String pickWithFailover(Tier tier, Predicate<String> trySubmit) {
+        return pickWithFailover(tier, null, null, trySubmit);
+    }
+
+    public String pickWithFailover(Tier tier, Long taskId, Long orderId, Predicate<String> trySubmit) {
         String abandoned = null;
         String reason = null;
         for (String id : router.rank(tier)) {
-            if (abandoned != null) log.record(abandoned, id, reason);
+            if (abandoned != null) log.record(taskId, orderId, abandoned, id, reason);
             if (!limiter.tryAcquire(id)) {
                 reason = "RATE_LIMITED";
             } else if (trySubmit.test(id)) {
