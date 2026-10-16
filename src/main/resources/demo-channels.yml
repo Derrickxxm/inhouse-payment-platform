@@ -1,0 +1,37 @@
+payplat:
+  channels:
+    - id: FakeBankA
+      feeBps: 80
+      latencyMs: 300
+      stability: 0.95
+      successRate: 0.97
+      rateLimitPerSec: 2
+      maintenance: false
+    - id: FakeBankB
+      feeBps: 30
+      latencyMs: 900
+      stability: 0.80
+      successRate: 0.90
+      rateLimitPerSec: 100
+      maintenance: false
+    - id: FakeBankC
+      feeBps: 120
+      latencyMs: 100
+      stability: 0.90
+      successRate: 0.93
+      rateLimitPerSec: 100
+      maintenance: false
+    - id: FakeWallet
+      feeBps: 60
+      latencyMs: 600
+      stability: 0.99
+      successRate: 0.99
+      rateLimitPerSec: 100
+      maintenance: false
+    - id: FakeBankD
+      feeBps: 50
+      latencyMs: 50
+      stability: 0.92
+      successRate: 0.95
+      rateLimitPerSec: 100
+      maintenance: false

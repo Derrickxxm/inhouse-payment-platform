@@ -11,4 +11,5 @@ jobs:
           java-version: '21'
           cache: maven
       - run: ./mvnw -B test
+      - run: ./mvnw -q spring-boot:run -Dspring-boot.run.arguments=demo
       - run: python3 scripts/public_scan.py

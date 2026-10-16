@@ -10,7 +10,12 @@ import org.springframework.context.annotation.Bean;
 @ConfigurationPropertiesScan
 public class PayplatApplication {
     public static void main(String[] args) {
-        SpringApplication.run(PayplatApplication.class, args);
+        SpringApplication application = new SpringApplication(PayplatApplication.class);
+        if (java.util.Arrays.asList(args).contains("demo")) {
+            application.setDefaultProperties(java.util.Map.of(
+                "spring.main.banner-mode", "off", "logging.level.root", "WARN"));
+        }
+        application.run(args);
     }
 
     @Bean
