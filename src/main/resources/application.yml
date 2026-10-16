@@ -6,3 +6,6 @@ spring:
       mode: always
   config:
     import: classpath:channels.yml
+payplat:
+  corrector:
+    window-seconds: 60

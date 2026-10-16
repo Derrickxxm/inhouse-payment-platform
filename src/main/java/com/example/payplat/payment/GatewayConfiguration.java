@@ -7,8 +7,16 @@ import org.springframework.context.annotation.Configuration;
 public class GatewayConfiguration {
     @Bean
     ChannelGateway channelGateway() {
-        return (channelId, orderId, amountCents) -> {
-            throw new UnsupportedOperationException("no channel gateway configured");
+        return new ChannelGateway() {
+            @Override
+            public SubmitResult submit(String channelId, long orderId, long amountCents) {
+                throw new UnsupportedOperationException("no channel gateway configured");
+            }
+
+            @Override
+            public ChannelQueryResult query(String channelId, long orderId) {
+                throw new UnsupportedOperationException("no channel gateway configured");
+            }
         };
     }
 }
