@@ -3,6 +3,7 @@ package com.example.payplat.payment;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
@@ -14,6 +15,10 @@ public class ScriptedGateway implements ChannelGateway {
     private final List<Call> calls = Collections.synchronizedList(new ArrayList<>());
     private final Set<String> rejecting = ConcurrentHashMap.newKeySet();
     private volatile boolean rejectAll;
+    public record Query(String channelId, long orderId) {}
+
+    private final List<Query> queries = Collections.synchronizedList(new ArrayList<>());
+    private final Map<Long, ChannelQueryResult> answers = new ConcurrentHashMap<>();
     private volatile Consumer<Call> hook = c -> {};
 
     public void reject(String... channels) { rejecting.addAll(List.of(channels)); }
@@ -21,6 +26,17 @@ public class ScriptedGateway implements ChannelGateway {
     public void onCall(Consumer<Call> h) { hook = h; }
     public List<Call> calls() { synchronized (calls) { return List.copyOf(calls); } }
     public long callsFor(long orderId) { return calls().stream().filter(c -> c.orderId() == orderId).count(); }
+
+    /** Scripts what query() answers for an order; unscripted orders answer PROCESSING. */
+    public void answer(long orderId, ChannelQueryResult r) { answers.put(orderId, r); }
+    public List<Query> queries() { synchronized (queries) { return List.copyOf(queries); } }
+    public long queriesFor(long orderId) { return queries().stream().filter(q -> q.orderId() == orderId).count(); }
+
+    @Override
+    public ChannelQueryResult query(String channelId, long orderId) {
+        queries.add(new Query(channelId, orderId));
+        return answers.getOrDefault(orderId, ChannelQueryResult.PROCESSING);
+    }
 
     @Override
     public SubmitResult submit(String channelId, long orderId, long amountCents) {
