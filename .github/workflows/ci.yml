@@ -13,3 +13,4 @@ jobs:
       - run: ./mvnw -B test
       - run: ./mvnw -q spring-boot:run -Dspring-boot.run.arguments=demo
       - run: python3 scripts/public_scan.py
+      - run: pip install pytest && python3 -m pytest -q tests_py

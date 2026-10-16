@@ -84,7 +84,7 @@ Where to look:
 
 Honest note: several bugs were in the architect's own tests, and they were found only when executor builds ran against them (a test configuration leaking into other Spring contexts, tests that violated a rule the architect had written, a clock that ignored a rate limit). They were fixed in the open as separate architect commits and are listed in `docs/reviews/`.
 
-Test count: TEST_COUNT_PLACEHOLDER
+Test count: 181 Java tests (`./mvnw test`) and 8 Python tests for the public scan script (`pytest tests_py`), all run in CI.
 
 ## License
 
