@@ -1,5 +1,6 @@
 package com.example.payplat.payment;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -31,6 +32,25 @@ public class ScriptedGateway implements ChannelGateway {
     public void answer(long orderId, ChannelQueryResult r) { answers.put(orderId, r); }
     public List<Query> queries() { synchronized (queries) { return List.copyOf(queries); } }
     public long queriesFor(long orderId) { return queries().stream().filter(q -> q.orderId() == orderId).count(); }
+
+    public record StatementCall(String channelId, LocalDate date) {}
+
+    private final List<StatementCall> statementCalls = Collections.synchronizedList(new ArrayList<>());
+    private final Map<String, List<StatementLine>> statements = new ConcurrentHashMap<>();
+    private volatile boolean failStatements;
+
+    /** Scripts what statement() returns for a channel and date; unscripted answers are empty. */
+    public void statement(String channelId, LocalDate date, List<StatementLine> lines) { statements.put(channelId + "|" + date, lines); }
+    public void failStatements() { failStatements = true; }
+    public void healStatements() { failStatements = false; }
+    public List<StatementCall> statementCalls() { synchronized (statementCalls) { return List.copyOf(statementCalls); } }
+
+    // No @Override: compiles before and after ChannelGateway gains statement().
+    public List<StatementLine> statement(String channelId, LocalDate date) {
+        statementCalls.add(new StatementCall(channelId, date));
+        if (failStatements) throw new IllegalStateException("statement unavailable");
+        return statements.getOrDefault(channelId + "|" + date, List.of());
+    }
 
     @Override
     public ChannelQueryResult query(String channelId, long orderId) {

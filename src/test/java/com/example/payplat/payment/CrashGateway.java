@@ -12,4 +12,9 @@ public class CrashGateway implements ChannelGateway {
     public ChannelQueryResult query(String channelId, long orderId) {
         return ChannelWorld.query(orderId);
     }
+
+    // No @Override: compiles before and after ChannelGateway gains statement().
+    public java.util.List<StatementLine> statement(String channelId, java.time.LocalDate date) {
+        return java.util.List.of();
+    }
 }
